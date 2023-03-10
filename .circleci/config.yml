@@ -26,7 +26,7 @@ jobs:
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build
-
+      
   build-backend:
     docker:
       - image: circleci/node:13.8.0
@@ -39,13 +39,69 @@ jobs:
           command: |
             - run: npm i
             - run: npm run lint
-            # exit 1
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
+            # exit 1
+  
+  test-frontend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      # Checkout code from git
+      - checkout  
+      # Your job code here
+      - run: npm i
+      - run: npm run test
+      # Restore from cache
+                      
+  test-backend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      # Checkout code from git
+      - checkout  
+      # Your job code here
+      - run: npm i
+      - run: npm run test
+      # Restore from cache
+            
+  scan-frontend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      # Checkout code from git
+      - checkout
+      # Restore from cache
+      # Your job code here
+      - run: npm i
+      - run: npm run audit
+  scan-backend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      # Checkout code from git
+      - checkout
+      # Restore from cache
+      # Your job code here
+      - run: npm i
+      - run: npm run audit
+
 workflows:
   cicd_project:
     jobs:
       - build-frontend
       - build-backend
-    
+      - test-frontend
+        requires:
+          - build-frontend
+      - test-backend
+        requires:
+          - build-backend
+      - scan-frontend
+        requires:
+          - test-frontend
+      - scan-backend
+        requires:
+          - test-backend
+  
