@@ -8,8 +8,26 @@ commands:
           # ${CIRCLE_WORKFLOW_ID:0:5} takes the first 5 chars of the variable CIRCLE_CI_WORKFLOW_ID 
           when: on_fail
           command: |
-            aws cloudformation delete-stack --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:5}
-
+            aws cloudformation delete-stack --stack-name udapeople-${CIRCLE_WORKFLOW_ID:0:5}
+ 
+  revert-migrations:
+    description: Revert the last migration if successfully run in the current workflow.
+    parameters:
+      # Add parameter here     
+    steps:
+      - run:
+          name: Revert migrations
+          # Add when this will run
+          command: |
+            # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
+            SUCCESS = 1
+            if(( $SUCCESS==1 )); 
+            then
+            #  cd ~/project/backend
+            #  npm install
+            #  Add revert code here. You can find this in the Getting Started section.
+              exit 1
+            fi
 jobs:
   build-frontend:
     docker:
@@ -21,6 +39,7 @@ jobs:
       - run:
           name: frontend build
           command: |
+            cd frontend
             npm i
             npm run lint
       - save_cache:
@@ -37,8 +56,9 @@ jobs:
       - run:
           name: Back-end build
           command: |
+            cd backend
             npm i
-            run lint
+            npm run lint
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
@@ -49,11 +69,17 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       # Checkout code from git
-      - checkout  
+      - checkout 
+      - restore_cache:
+          keys: [frontend-build] 
       # Your job code here
-      - run: npm i
-      - run: npm run test
-      # Restore from cache
+      - run:
+          name: frontend test
+          command: |
+            cd frontend
+            npm i
+            npm run test
+      
                       
   test-backend:
     docker:
@@ -61,9 +87,15 @@ jobs:
     steps:
       # Checkout code from git
       - checkout  
+      - restore_cache:
+          keys: [backend-build]
       # Your job code here
-      - run: npm i
-      - run: npm run test
+      - run:
+          name: backend test
+          command: |
+            cd backend
+            npm i
+            npm run test
       # Restore from cache
             
   scan-frontend:
@@ -72,20 +104,31 @@ jobs:
     steps:
       # Checkout code from git
       - checkout
-      # Restore from cache
+      - restore_cache:
+          keys: [frontend-build] # Restore from cache
       # Your job code here
-      - run: npm i
-      - run: npm run audit
+      - run:
+          name: frontend audit
+          command: |
+            cd backend
+            npm i
+            npm run audit
+  
   scan-backend:
     docker:
       - image: circleci/node:13.8.0
     steps:
       # Checkout code from git
       - checkout
-      # Restore from cache
+     - restore_cache:
+          keys: [backend-build]
       # Your job code here
-      - run: npm i
-      - run: npm run audit
+      - run:
+          name: backend audit 
+          command: |
+            cd backend
+            npm i
+            npm run audit
 
 workflows:
   udapeople_project:
