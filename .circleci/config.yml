@@ -364,7 +364,31 @@
               fi
         - revert-migrations
 
-
+    cloudfront-update:
+        docker:
+          # Docker image here that supports AWS CLI
+          - image: amazon/aws-cli
+        steps:
+          - checkout
+          # Checkout code from git
+          - run:
+              name: Install dependencies
+              command: |
+                # your code here
+                yum install -y curl
+          - run:
+              name: Update cloudfront distribution
+              command: |
+                aws cloudformation deploy \
+                    --template-file .circleci/files/cloudfront.yml \
+                    --stack-name InitialStack \
+                    --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
+                    --tags project=udapeople
+            echo workflow id: "${CIRCLE_WORKFLOW_ID:0:7}"
+          - destroy-environment  
+          - slack/notify:
+              event: fail
+              template: basic_fail_1  
   workflows:
     udapeople_project:
       jobs:
@@ -394,9 +418,9 @@
             #requires: [run-migrations]
         #- deploy-backend:
             #requires: [run-migrations]
-        - smoke-test
+        #- smoke-test
             #requires: [deploy-backend, deploy-frontend]
-        #- cloudfront-update:
+        - cloudfront-update
             #requires: [smoke-test]
         #- cleanup:
             #requires: [cloudfront-update]
