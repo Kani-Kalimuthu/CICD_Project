@@ -50,7 +50,7 @@ jobs:
       
   build-backend:
     docker:
-      - image: circleci/node:14.18.1
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
@@ -83,7 +83,8 @@ jobs:
             cd frontend
             npm i
             npm run test
-
+            npm audit fix
+            npm audit fix --force  
 
   test-backend:
     docker:
@@ -100,6 +101,8 @@ jobs:
             cd backend
             npm i
             npm run test
+            npm audit fix
+            npm audit fix --force  
       # Restore from cache
             
   scan-frontend:
