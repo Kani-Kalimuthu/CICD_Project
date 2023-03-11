@@ -211,7 +211,7 @@
               cd .circleci/ansible 
               ansible-playbook -i inventory.txt configure-server.yml 
 
-   workflows:
+  workflows:
     udapeople_project:
       jobs:
         #- build-frontend          
