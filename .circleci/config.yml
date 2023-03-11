@@ -246,9 +246,7 @@
                   echo 'Migration failed'
                   curl https://kvdb.io/YJZDQS1RCjqDfGYreYSPXA/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '0'
               fi
-        #- destroy_environment
-            
-
+        - destroy_environment
         - slack/notify:
             event: fail
             template: basic_fail_1  
@@ -302,7 +300,6 @@
         - run: 
             name: Save all db varibles in env file 
             command: |
-              ls
               cd backend
               echo ENVIRONMENT=production >> .env
               echo NODE_ENV=production >> .env
@@ -332,8 +329,8 @@
               echo "Contents of the inventory.txt file"
               cat inventory.txt            
               ansible-playbook -i inventory.txt deploy-backend.yml
-        - destroy-environment
-        - revert-migrations
+        #- destroy_environment
+        #- revert-migrations
         - slack/notify:
               event: fail
               template: basic_fail_1    
