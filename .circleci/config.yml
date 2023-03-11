@@ -204,13 +204,17 @@
             name: Install dependencies
             command: |
               apk add --update ansible
-              exit 1
+              apk add curl
+              apk add openssh-client
+              pip install awscli
         - run:
             name: Configure server
             command: |
               cd .circleci/ansible 
               ansible-playbook -i inventory.txt configure-server.yml 
-
+        - slack/notify:
+            event: fail
+            template: basic_fail_1 
   workflows:
     udapeople_project:
       jobs:
