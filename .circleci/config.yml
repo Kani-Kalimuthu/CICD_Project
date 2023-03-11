@@ -261,12 +261,9 @@
         - run:
             name: Install dependencies
             command: |
-              sudo apt-get update
-              sudo apt-get upgrade
-              sudo apt-get install -y python3
-              sudo apt-get install -y awscli
-              sudo apt-get install -y tar gzip
-              sudo apt-get install -y curl
+              yum -y install python3
+              curl -sL https://rpm.nodesource.com/setup_16.x | bash -
+              yum -y install nodejs tar gzip
         - run:
             name: Get backend url
             command: |
