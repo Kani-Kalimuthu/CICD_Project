@@ -421,9 +421,9 @@
               if [[ "${STACKS[@]}" != "${OldWorkflowID}" ]]
               then
                 echo "Cleaning up----------------------------------"
-                aws s3 rm "s3://udapeople-de4aef6" --recursive
-                aws cloudformation delete-stack --stack-name "udapeople-backend-de4aef6"
-                aws cloudformation delete-stack --stack-name "udapeople-frontend-de4aef6"
+                aws s3 rm "s3://udapeople-b5e7469" --recursive
+                aws cloudformation delete-stack --stack-name "udapeople-backend-b5e7469"
+                aws cloudformation delete-stack --stack-name "udapeople-frontend-b5e7469"
               else
                 echo "Cleaning up not required---------------------"
               fi
