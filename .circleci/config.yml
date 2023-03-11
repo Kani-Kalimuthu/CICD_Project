@@ -12,7 +12,10 @@
             # ${CIRCLE_WORKFLOW_ID:0:5} takes the first 5 chars of the variable CIRCLE_CI_WORKFLOW_ID 
             when: on_fail
             command: |
-              aws cloudformation delete-stack --stack-name udapeople-${CIRCLE_WORKFLOW_ID:0:5}
+              echo "Destroying environment: ${CIRCLE_WORKFLOW_ID:0:7} "
+              aws s3 rm --recursive s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}
+              aws cloudformation delete-stack --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}
+              aws cloudformation delete-stack --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
   
     revert-migrations:
       description: Revert the last migration if successfully run in the current workflow.
@@ -150,22 +153,64 @@
         - slack/notify:
             event: fail
             template: basic_fail_1
-          
+    
+    deploy-infrastructure:
+      docker:
+        - image:  amazon/aws-cli
+      steps:
+        - checkout
+        - run:
+            name: Ensure back-end infrastructure exists
+            command: |
+              aws cloudformation deploy \
+                --template-file .circleci/files/backend.yml \
+                --tags project=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} \
+                --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} \
+                --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
+        - run:
+            name: Ensure front-end infrastructure exist
+            command: |
+              aws cloudformation deploy \
+                --template-file .circleci/files/frontend.yml \
+                --tags project=udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7} \
+                --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7} \
+                --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"       
+        - run:
+            name: Add back-end ip to ansible inventory
+            command: |
+              aws ec2 describe-instances \
+                --query 'Reservations[*].Instances[*].PublicIpAddress' \
+                --filters "Name=tag:Name,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:5}" \
+                --output text >> .circleci/ansible/inventory.txt
+                cat .circleci/ansible/inventory.txt
+        - persist_to_workspace:
+            root: ~/
+            paths:
+                - .circleci/ansible/inventory.txt
+        #- destroy-environment  
+        - slack/notify:
+            event: fail
+            template: basic_fail_1  
+
   workflows:
     udapeople_project:
       jobs:
-        - build-frontend          
-        - build-backend            
-        - test-frontend:            
-            requires:
-              - build-frontend
-        - test-backend:            
-            requires:
-              - build-backend
-        - scan-frontend:            
-            requires:
-              - test-frontend
-        - scan-backend:
-            requires:
-              - test-backend
-    
+        #- build-frontend          
+        #- build-backend            
+        #- test-frontend:            
+        #    requires:
+        #      - build-frontend
+        #- test-backend:            
+        #    requires:
+        #      - build-backend
+        #- scan-frontend:            
+        #    requires:
+        #      - test-frontend
+        #- scan-backend:
+        #    requires:
+        #      - test-backend
+        - deploy-infrastructure:
+           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+             filters:
+               branches:
+                only: [master]
