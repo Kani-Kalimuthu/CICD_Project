@@ -1,45 +1,51 @@
 ---
-- name: "update apt packages."
-  become: yes
+- name: "upgrade packages."
+  become: true
   apt:
-    update_cache: yes
-
-- name: "upgrade packages"
-  become: yes
-  apt:
-    upgrade: yes
-
-
-- name: remove dependencies that are no longer required
-  become: yes
-  apt:
-    autoremove: yes
+    upgrade: "yes"
 
 - name: "install dependencies."
-  become: yes
+  become: true
   apt:
     name: ["nodejs", "npm"]
     state: latest
     update_cache: yes
 
 - name: "install pm2"
-  become: yes
+  become: true
   npm:
     name: pm2
     global: yes
     production: yes
     state: present
 
-- name: Creates directory
+- name: "Create Directory"
+  become: true
   file:
-    path: ~/web
+    path: ~/Udapeople
     state: directory
 
-- name: Copy index test page
-  template:
-    src: "files/index.js"
-    dest: "~/web/index.js"
+- name: "Copy Artifact"
+  become: true
+  copy:
+    src: ~/project/artifact.tar.gz
+    dest: ~/Udapeople/artifact.tar.gz
 
-- name: Executing node
+- name: "Extract Artifact"
+  become: true
   shell: |
-    pm2 start ~/web/index.js -f
+    cd ~/Udapeople
+    tar -vxf artifact.tar.gz
+    rm -f artifact.tar.gz
+- name: "Install NPM"
+  become: true
+  shell:
+    cd ~/Udapeople
+    npm install
+
+- name: "Start Application"
+  become: true
+  shell:
+    cd ~/Udapeople
+    pm2 start npm -- run start
+    sleep 60
