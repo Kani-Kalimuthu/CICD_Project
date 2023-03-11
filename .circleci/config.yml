@@ -29,13 +29,13 @@
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
             SUCCESS=$(curl --insecure  https://kvdb.io/YJZDQS1RCjqDfGYreYSPXA/migration_${CIRCLE_WORKFLOW_ID:0:7})
-            if(( $SUCCESS==0 )); 
-            then
-              echo "Reverting Back"
-              cd ~/project/backend
-              npm install
-              npm run migration:revert
-            fi
+              if(( $SUCCESS==1 )); 
+              then
+                    echo "Reverting Back"
+                      cd backend
+					            npm install
+					            npm run migration:revert
+              fi
             
   jobs:
     build-frontend:
@@ -362,10 +362,9 @@
               else
                 exit 1
               fi
-                 
-        - slack/notify:
-            event: fail
-            template: basic_fail_1 
+        - revert-migrations:
+            workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
+            event: on_fail
 
 
   workflows:
