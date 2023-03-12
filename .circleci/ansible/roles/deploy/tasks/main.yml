@@ -25,9 +25,8 @@
     path: ~/Udapeople
     state: directory
 
-- name: "Copy Artifact"
-  become: true
-  copy:
+- name: Copy artifact file 
+  template:
     src: "files/artifact.tar.gz"
     dest: "~/Udapeople/artifact.tar.gz"
 
