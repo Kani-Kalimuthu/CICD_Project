@@ -274,7 +274,9 @@
         - run:
             name: Deploy frontend objects
             command: |
-              cd frontend 
+              cd frontend
+              ls -la
+              cat .env
               npm install      
               npm run build
               tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
