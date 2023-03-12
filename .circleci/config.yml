@@ -323,7 +323,7 @@
               cat inventory.txt
               ansible-playbook -i inventory.txt deploy-backend.yml
         #- destroy_environment
-        #- revert-migrations
+        ##- revert-migrations
         - slack/notify:
               event: fail
               template: basic_fail_1    
