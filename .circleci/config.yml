@@ -320,7 +320,7 @@
               npm i
               npm run build
               cd ..
-              tar -C backend -czvf artifact.tar.gz . 
+            # tar -C backend -czvf artifact.tar.gz . 
         - run:
             name: Deploy backend
             command: |

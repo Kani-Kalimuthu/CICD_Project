@@ -19,33 +19,33 @@
     production: yes
     state: present
 
-- name: "Create Directory"
+- name: Creates directory
   become: true
   file:
-    path: /home/ubuntu/Udapeople
+    path: ~/Udapeople
     state: directory
 
 - name: "Copy Artifact"
   become: true
   copy:
-    src: .circleci/artifact.tar.gz
-    dest: /home/ubuntu/Udapeople/artifact.tar.gz
+    src: "files/artifact.tar.gz"
+    dest: "~/Udapeople/artifact.tar.gz"
 
 - name: "Extract Artifact"
   become: true
   shell: |
-    cd /home/ubuntu/Udapeople
+    cd ~/Udapeople
     tar -vxf artifact.tar.gz
     rm -f artifact.tar.gz
 - name: "Install NPM"
   become: true
   shell:
-    cd /home/ubuntu/Udapeople
+    cd ~/Udapeople
     npm install
 
 - name: "Start Application"
   become: true
   shell:
-    cd /home/ubuntu/Udapeople
+    cd ~/Udapeople
     pm2 start npm -- run start
     sleep 60
