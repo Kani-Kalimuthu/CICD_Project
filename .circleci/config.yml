@@ -317,10 +317,15 @@
             name: Package backend 
             command: |
               cd backend
-              npm i
+              cat .env
+              npm i 
               npm run build
-              cd ..
-            # tar -C backend -czvf artifact.tar.gz . 
+              ls 
+              tar -czvf dist.tar.gz dist
+              mkdir -p ~/project/.circleci/ansible/roles/deploy/files/
+              mv dist.tar.gz  ~/project/.circleci/ansible/roles/deploy/files/
+              cp -f ~/project/backend/package.json  ~/project/.circleci/ansible/roles/deploy/files/
+              
         - run:
             name: Deploy backend
             command: |
