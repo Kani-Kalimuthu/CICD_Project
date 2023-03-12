@@ -1,50 +1,52 @@
 ---
-- name: "upgrade packages."
+- name: "Copy compiled backend app"
   become: true
-  apt:
-    upgrade: "yes"
+  copy:
+    src: dist.tar.gz
+    dest: /home/ubuntu
 
-- name: "install dependencies."
+- name: "Unzip backend files to correct directory"
+
+  shell: |
+      cd /home/ubuntu
+      tar -xzvf dist.tar.gz
+      rm -rf dist.tar.gz
+- name: "Copy compiled backend app"
   become: true
-  apt:
-    name: ["nodejs", "npm"]
-    state: latest
-    update_cache: yes
+  copy:
+    src: package.json
+    dest: /home/ubuntu/dist
 
+- name: "Install dependencies for project"
+  shell: |
+    cd /home/ubuntu/dist
+    npm install
 - name: "install pm2"
   become: true
   npm:
     name: pm2
     global: yes
     production: yes
-    state: present
+    state: present   
 
-- name: Creates directory
-  become: true
-  file:
-    path: ~/Udapeople
-    state: directory
-
-- name: Copy artifact file 
-  template:
-    src: "files/artifact.tar.gz"
-    dest: "~/Udapeople/artifact.tar.gz"
-
-- name: "Extract Artifact"
-  become: true
+- name: "Executing node"
   shell: |
-    cd ~/Udapeople
-    tar -vxf artifact.tar.gz
-    rm -f artifact.tar.gz
-- name: "Install NPM"
-  become: true
-  shell:
-    cd ~/Udapeople
-    npm install
+    cd /home/ubuntu/dist
+    export ENVIRONMENT=production
+    export NODE_ENV=production
+    export TYPEORM_HOST="{{ lookup('env', 'TYPEORM_HOST') }}"
+    export TYPEORM_ENTITIES=/home/ubuntu/dist/modules/domain/**/*.entity.js
+    export TYPEORM_USERNAME="{{ lookup('env', 'TYPEORM_USERNAME') }}"
+    export TYPEORM_PASSWORD="{{ lookup('env', 'TYPEORM_PASSWORD') }}"
+    export TYPEORM_DATABASE="{{ lookup('env', 'TYPEORM_DATABASE') }}"
+    pm2 start main.js --name udapeople-backend
+  register: execute_node
 
-- name: "Start Application"
-  become: true
-  shell:
-    cd ~/Udapeople
-    pm2 start npm -- run start
-    sleep 60
+- name: print message
+  debug:
+    msg: "{{ execute_node.stdout_lines }}"
+
+- name: "Set pm2 start as service"
+  become: yes
+  shell: |
+    env PATH=$PATH:/usr/local/bin pm2 startup -u ubuntu
