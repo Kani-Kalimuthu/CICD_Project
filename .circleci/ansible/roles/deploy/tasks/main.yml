@@ -19,33 +19,54 @@
     production: yes
     state: present
 
-- name: "Create Directory"
-  become: true
-  file:
-    path: ~/Udapeople
-    state: directory
-
-- name: "Copy Artifact"
+- name: "Copy compiled backend app"
   become: true
   copy:
-    src: ~/project/artifact.tar.gz
-    dest: ~/Udapeople/artifact.tar.gz
+    src: dist.tar.gz
+    dest: /home/ubuntu
 
-- name: "Extract Artifact"
-  become: true
+- name: "Unzip backend files to correct directory"
+
   shell: |
-    cd ~/Udapeople
-    tar -vxf artifact.tar.gz
-    rm -f artifact.tar.gz
-- name: "Install NPM"
+      cd /home/ubuntu
+      tar -xzvf dist.tar.gz
+      rm -rf dist.tar.gz
+- name: "Copy compiled backend app"
   become: true
-  shell:
-    cd ~/Udapeople
-    npm install
+  copy:
+    src: package.json
+    dest: /home/ubuntu/dist
 
-- name: "Start Application"
+- name: "Install dependencies for project"
+  shell: |
+    cd /home/ubuntu/dist
+    npm install
+- name: "install pm2"
   become: true
-  shell:
-    cd ~/Udapeople
-    pm2 start npm -- run start
-    sleep 60
+  npm:
+    name: pm2
+    global: yes
+    production: yes
+    state: present   
+
+- name: "Executing node"
+  shell: |
+    cd /home/ubuntu/dist
+    export ENVIRONMENT=production
+    export NODE_ENV=production
+    export TYPEORM_HOST="{{ lookup('env', 'TYPEORM_HOST') }}"
+    export TYPEORM_ENTITIES=/home/ubuntu/dist/modules/domain/**/*.entity.js
+    export TYPEORM_USERNAME="{{ lookup('env', 'TYPEORM_USERNAME') }}"
+    export TYPEORM_PASSWORD="{{ lookup('env', 'TYPEORM_PASSWORD') }}"
+    export TYPEORM_DATABASE="{{ lookup('env', 'TYPEORM_DATABASE') }}"
+    pm2 start main.js --name udapeople-backend
+  register: execute_node
+
+- name: print message
+  debug:
+    msg: "{{ execute_node.stdout_lines }}"
+
+- name: "Set pm2 start as service"
+  become: yes
+  shell: |
+    env PATH=$PATH:/usr/local/bin pm2 startup -u ubuntu
