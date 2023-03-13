@@ -428,12 +428,12 @@
       jobs:
         #- build-frontend          
         #- build-backend            
-        ##   requires: [build-frontend]
+        #   requires: [build-frontend]
         #- test-backend:            
         #    requires: [build-backend]
-        #- scan-frontend:            
+        - scan-frontend         
         #    requires: [test-frontend]
-        #- scan-backend:
+        - scan-backend
          #   requires: [test-backend]
         #- deploy-infrastructure:
          #   requires: [test-frontend, test-backend, scan-frontend, scan-backend]
@@ -442,13 +442,13 @@
           #      only: [main]
         #- configure-infrastructure
             #requires: [deploy-infrastructure]
-        #- run-migrations:
+        - run-migrations
             #requires: [configure-infrastructure]
-        #- deploy-frontend:
-            #requires: [run-migrations]
+        - deploy-frontend:
+            requires: [run-migrations]
         #- deploy-backend
             #requires: [run-migrations]
-        - smoke-test
+        #- smoke-test
             #requires: [deploy-backend, deploy-frontend]
         #- cloudfront-update:
          #   requires: [smoke-test]
